@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS DelSol DEFAULT CHARACTER SET utf8;
+CREATE DATABASE IF NOT EXISTS delsol DEFAULT CHARACTER SET utf8;
 USE DelSol;
 
 CREATE TABLE IF NOT EXISTS cliente (
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS proveedor (
   contacto VARCHAR(100) NOT NULL,
   telefono CHAR(10) NOT NULL,
   correo_electronico VARCHAR(80),
-  dirección VARCHAR(150),
+  direccion VARCHAR(150),
   PRIMARY KEY (idproveedor)
 ) ENGINE = InnoDB;
 

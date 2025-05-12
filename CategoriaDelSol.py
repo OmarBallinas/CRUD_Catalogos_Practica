@@ -10,7 +10,7 @@ def crear_categoria(id_categoria, nombre):
     conn, cursor = conectar()
     if conn and cursor:
         try:
-            cursor.execute("INSERT INTO categorias (id_categoria, nombre) VALUES (%s, %s)", (id_categoria, nombre))
+            cursor.execute("INSERT INTO categoria (idcategoria, nombre) VALUES (%s, %s)", (id_categoria, nombre))
             conn.commit()
             mostrar_mensaje("Éxito", "Categoría creada exitosamente.")
         except Exception as e:
@@ -26,7 +26,7 @@ def buscar_categoria(id_categoria):
     conn, cursor = conectar()
     if conn and cursor:
         try:
-            cursor.execute("SELECT id_categoria, nombre FROM categorias WHERE id_categoria = %s", (id_categoria,))
+            cursor.execute("SELECT idcategoria, nombre FROM categoria WHERE idcategoria = %s", (id_categoria,))
             resultado = cursor.fetchone()
             return resultado
         except Exception as e:
@@ -43,7 +43,7 @@ def actualizar_categoria(id_categoria, nombre):
     conn, cursor = conectar()
     if conn and cursor:
         try:
-            cursor.execute("UPDATE categorias SET nombre = %s WHERE id_categoria = %s", (nombre, id_categoria))
+            cursor.execute("UPDATE categoria SET nombre = %s WHERE idcategoria = %s", (nombre, id_categoria))
             conn.commit()
             mostrar_mensaje("Éxito", "Categoría actualizada exitosamente.")
         except Exception as e:
@@ -59,7 +59,7 @@ def eliminar_categoria(id_categoria):
     conn, cursor = conectar()
     if conn and cursor:
         try:
-            cursor.execute("DELETE FROM categorias WHERE id_categoria = %s", (id_categoria,))
+            cursor.execute("DELETE FROM categoria WHERE idcategoria = %s", (id_categoria,))
             conn.commit()
             mostrar_mensaje("Éxito", "Categoría eliminada exitosamente.")
         except Exception as e:
@@ -72,7 +72,7 @@ def eliminar_categoria(id_categoria):
 
 # Interfaz gráfica
 app = wx.App()
-ventana = wx.Frame(None, title='Catálogo de Categorías', size=(600, 250))
+ventana = wx.Frame(None, title='Catálogo de Categoría', size=(600, 250))
 panel = wx.Panel(ventana)
 
 lbl_titulo = wx.Panel(panel, pos=(0, 0), size=(600, 40))

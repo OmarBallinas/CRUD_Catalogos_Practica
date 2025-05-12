@@ -1,93 +1,117 @@
 import wx
-import mysql.connector
+from conexion import conectar
 from mysql.connector import Error
 
-# Función para conectar a la base de datos
-def conectar():
-    try:
-        conexion = mysql.connector.connect(
-            host='localhost',
-            database='tu_base_de_datos',
-            user='tu_usuario',
-            password='tu_contraseña'
-        )
-        if conexion.is_connected():
-            return conexion
-    except Error as e:
-        wx.MessageBox(f"Error al conectar a la base de datos: {e}", "Error", wx.OK | wx.ICON_ERROR)
-        return None
+
+# Función para mostrar mensajes
+def mostrar_mensaje(titulo, mensaje):
+    wx.MessageBox(mensaje, titulo, wx.OK | wx.ICON_INFORMATION)
+
+# Función para validar campos
+def validar_campos(idempleado, nombre, apellidos, telefono, correo_electronico, contraseña, conf_contraseña):
+    if not idempleado.isdigit():
+        return "El ID del empleado debe ser un número entero"
+    if len(nombre) == 0 or len(apellidos) == 0:
+        return "Nombre y apellidos son campos obligatorios"
+    if telefono and (not telefono.isdigit() or len(telefono) != 10):
+        return "El teléfono debe tener 10 dígitos numéricos"
+    if correo_electronico and '@' not in correo_electronico:
+        return "Ingrese un correo electrónico válido"
+    if len(contraseña) < 6:
+        return "La contraseña debe tener al menos 6 caracteres"
+    if contraseña != conf_contraseña:
+        return "Las contraseñas no coinciden"
+    return None
 
 # Función para crear un empleado
-def crear_empleado(id_empleado, nombre, apellidos, telefono, correo, contrasena):
-    conn = conectar()
-    if conn:
+def crear_empleado(idempleado, nombre, apellidos, telefono, correo_electronico, contraseña):
+    conn, cursor = conectar()
+    if conn and cursor:
         try:
-            cursor = conn.cursor()
-            query = "INSERT INTO empleados (id_empleado, nombre, apellidos, telefono, correo, contrasena) VALUES (%s, %s, %s, %s, %s, %s)"
-            cursor.execute(query, (id_empleado, nombre, apellidos, telefono, correo, contrasena))
+            query = """INSERT INTO empleado 
+                       (idempleado, nombre, apellidos, telefono, correo_electronico, contraseña) 
+                       VALUES (%s, %s, %s, %s, %s, %s)"""
+            cursor.execute(query, (idempleado, nombre, apellidos, 
+                                 telefono if telefono else None, 
+                                 correo_electronico if correo_electronico else None, 
+                                 contraseña))
             conn.commit()
+            mostrar_mensaje("Éxito", "Empleado creado exitosamente")
+            return True
+        except Error as e:
+            mostrar_mensaje("Error", f"Error al crear empleado: {e}")
+        finally:
             cursor.close()
             conn.close()
-            wx.MessageBox("Empleado creado exitosamente", "Éxito", wx.OK | wx.ICON_INFORMATION)
-        except Error as e:
-            wx.MessageBox(f"Error al crear empleado: {e}", "Error", wx.OK | wx.ICON_ERROR)
     else:
-        wx.MessageBox("No se pudo conectar a la base de datos", "Error", wx.OK | wx.ICON_ERROR)
+        mostrar_mensaje("Error", "No se pudo conectar a la base de datos")
+    return False
 
 # Función para buscar un empleado
-def buscar_empleado(id_empleado):
-    conn = conectar()
-    if conn:
+def buscar_empleado(idempleado):
+    conn, cursor = conectar()
+    if conn and cursor:
         try:
-            cursor = conn.cursor()
-            query = "SELECT * FROM empleados WHERE id_empleado = %s"
-            cursor.execute(query, (id_empleado,))
+            query = "SELECT * FROM empleado WHERE idempleado = %s"
+            cursor.execute(query, (idempleado,))
             resultado = cursor.fetchone()
-            if resultado:
-                return resultado
-            else:
-                wx.MessageBox("Empleado no encontrado", "Error", wx.OK | wx.ICON_ERROR)
-                return None
+            return resultado
+        except Error as e:
+            mostrar_mensaje("Error", f"Error al buscar empleado: {e}")
+        finally:
             cursor.close()
             conn.close()
-        except Error as e:
-            wx.MessageBox(f"Error al buscar empleado: {e}", "Error", wx.OK | wx.ICON_ERROR)
     else:
-        wx.MessageBox("No se pudo conectar a la base de datos", "Error", wx.OK | wx.ICON_ERROR)
+        mostrar_mensaje("Error", "No se pudo conectar a la base de datos")
+    return None
 
 # Función para actualizar un empleado
-def actualizar_empleado(id_empleado, nombre, apellidos, telefono, correo, contrasena):
-    conn = conectar()
-    if conn:
+def actualizar_empleado(idempleado, nombre, apellidos, telefono, correo_electronico, contraseña):
+    conn, cursor = conectar()
+    if conn and cursor:
         try:
-            cursor = conn.cursor()
-            query = "UPDATE empleados SET nombre = %s, apellidos = %s, telefono = %s, correo = %s, contrasena = %s WHERE id_empleado = %s"
-            cursor.execute(query, (nombre, apellidos, telefono, correo, contrasena, id_empleado))
+            query = """UPDATE empleado SET 
+                      nombre = %s, 
+                      apellidos = %s, 
+                      telefono = %s, 
+                      correo_electronico = %s, 
+                      contraseña = %s 
+                      WHERE idempleado = %s"""
+            cursor.execute(query, (nombre, apellidos, 
+                                 telefono if telefono else None, 
+                                 correo_electronico if correo_electronico else None, 
+                                 contraseña, 
+                                 idempleado))
             conn.commit()
+            mostrar_mensaje("Éxito", "Empleado actualizado exitosamente")
+            return True
+        except Error as e:
+            mostrar_mensaje("Error", f"Error al actualizar empleado: {e}")
+        finally:
             cursor.close()
             conn.close()
-            wx.MessageBox("Empleado actualizado exitosamente", "Éxito", wx.OK | wx.ICON_INFORMATION)
-        except Error as e:
-            wx.MessageBox(f"Error al actualizar empleado: {e}", "Error", wx.OK | wx.ICON_ERROR)
     else:
-        wx.MessageBox("No se pudo conectar a la base de datos", "Error", wx.OK | wx.ICON_ERROR)
+        mostrar_mensaje("Error", "No se pudo conectar a la base de datos")
+    return False
 
 # Función para eliminar un empleado
-def eliminar_empleado(id_empleado):
-    conn = conectar()
-    if conn:
+def eliminar_empleado(idempleado):
+    conn, cursor = conectar()
+    if conn and cursor:
         try:
-            cursor = conn.cursor()
-            query = "DELETE FROM empleados WHERE id_empleado = %s"
-            cursor.execute(query, (id_empleado,))
+            query = "DELETE FROM empleado WHERE idempleado = %s"
+            cursor.execute(query, (idempleado,))
             conn.commit()
+            mostrar_mensaje("Éxito", "Empleado eliminado exitosamente")
+            return True
+        except Error as e:
+            mostrar_mensaje("Error", f"Error al eliminar empleado: {e}")
+        finally:
             cursor.close()
             conn.close()
-            wx.MessageBox("Empleado eliminado exitosamente", "Éxito", wx.OK | wx.ICON_INFORMATION)
-        except Error as e:
-            wx.MessageBox(f"Error al eliminar empleado: {e}", "Error", wx.OK | wx.ICON_ERROR)
     else:
-        wx.MessageBox("No se pudo conectar a la base de datos", "Error", wx.OK | wx.ICON_ERROR)
+        mostrar_mensaje("Error", "No se pudo conectar a la base de datos")
+    return False
 
 # Función para mostrar un mensaje
 def mostrar_mensaje(titulo, mensaje):

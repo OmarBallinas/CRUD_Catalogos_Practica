@@ -12,7 +12,7 @@ def crear_cliente(telefono, nombre, apellido, correo):
     conn, cursor = conectar()
     if conn and cursor:
         try:
-            query = "INSERT INTO clientes (telefono, nombre, apellido, correo) VALUES (%s, %s, %s, %s)"
+            query = "INSERT INTO cliente (telefono_cliente , nombre, apellido, correo_electronico ) VALUES (%s, %s, %s, %s)"
             cursor.execute(query, (telefono, nombre, apellido, correo))
             conn.commit()
             mostrar_mensaje("Éxito", "Cliente creado exitosamente")
@@ -29,7 +29,7 @@ def buscar_cliente(telefono):
     conn, cursor = conectar()
     if conn and cursor:
         try:
-            query = "SELECT telefono, nombre, apellido, correo FROM clientes WHERE telefono = %s"
+            query = "SELECT telefono_cliente , nombre, apellido, correo_electronico  FROM cliente WHERE telefono_cliente = %s"
             cursor.execute(query, (telefono,))
             resultado = cursor.fetchone()
             if resultado:
@@ -51,7 +51,7 @@ def actualizar_cliente(telefono, nombre, apellido, correo):
     conn, cursor = conectar()
     if conn and cursor:
         try:
-            query = "UPDATE clientes SET nombre = %s, apellido = %s, correo = %s WHERE telefono = %s"
+            query = "UPDATE cliente SET nombre = %s, apellido = %s, correo_electronico = %s WHERE telefono_cliente = %s"
             cursor.execute(query, (nombre, apellido, correo, telefono))
             conn.commit()
             mostrar_mensaje("Éxito", "Cliente actualizado exitosamente")
@@ -68,7 +68,7 @@ def eliminar_cliente(telefono):
     conn, cursor = conectar()
     if conn and cursor:
         try:
-            query = "DELETE FROM clientes WHERE telefono = %s"
+            query = "DELETE FROM cliente WHERE telefono_cliente = %s"
             cursor.execute(query, (telefono,))
             conn.commit()
             mostrar_mensaje("Éxito", "Cliente eliminado exitosamente")
