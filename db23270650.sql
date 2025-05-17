@@ -121,7 +121,17 @@ INSERT INTO articulo (codigo_barras, nombre, descripcion, precio, unidad, descue
 ('7501020510148', 'Doritos Nacho 65g', 'Botana de maíz sabor nacho', 19.50, 'bolsa', 1.5, 0002),
 ('7501035910012', 'Fabuloso Lavanda 1L', 'Limpiador líquido multiusos', 23.90, 'litro', 0.0, 0003),
 ('7501058604521', 'Colgate Triple Acción 75ml', 'Pasta dental protección total', 28.00, 'tubo', 0.0, 0004),
-('7503012345678', 'Concha Azucarada', 'Pan dulce sabor vainilla con cobertura', 11.00, 'pieza', 0.0, 0005);
+('7503012345678', 'Concha Azucarada', 'Pan dulce sabor vainilla con cobertura', 11.00, 'pieza', 0.0, 0005),
+('7501000132160', 'Pepsi 600ml', 'Refresco sabor cola en botella de PET', 15.50, 'botella', 0.0, 0001),
+('7501020510149', 'Cheetos Flamin Hot 65g', 'Botana de maíz sabor picante', 20.00, 'bolsa', 1.0, 0002),
+('7501035910013', 'Pinol Limón 1L', 'Limpiador líquido multiusos con aroma a limón', 25.00, 'litro', 0.0, 0003),
+('7501058604522', 'Colgate Herbal 75ml', 'Pasta dental con extractos naturales', 27.00, 'tubo', 0.0, 0004),
+('7503012345679', 'Concha Chocolate', 'Pan dulce con cobertura de chocolate', 12.00, 'pieza', 0.0, 0005),
+('7501000132177', 'Jarritos Naranja 600ml', 'Refresco sabor naranja en botella de vidrio', 18.00, 'botella', 0.0, 0001),
+('7501020510150', 'Sabritas Original 150g', 'Botana de papas clásicas', 22.50, 'bolsa', 0.0, 0002),
+('7501035910014', 'Cloralex 1L', 'Cloro líquido para limpieza', 28.00, 'litro', 0.0, 0003),
+('7501058604523', 'Sensodyne 75ml', 'Pasta dental para dientes sensibles', 35.00, 'tubo', 0.0, 0004),
+('7503012345680', 'Cuernito', 'Pan dulce en forma de cuerno', 10.00, 'pieza', 0.0, 0005);
 
 
 INSERT INTO inventario (codigo_barras, existencia_actual, capacidad_maxima, temporada, fecha_caducidad) VALUES
@@ -129,7 +139,17 @@ INSERT INTO inventario (codigo_barras, existencia_actual, capacidad_maxima, temp
 ('7501020510148', 65, 150, 'Todo el año', '2025-11-10'),
 ('7501035910012', 40, 100, 'Todo el año', '2027-03-15'),
 ('7501058604521', 55, 100, 'Todo el año', '2026-05-01'),
-('7503012345678', 30, 80, 'Todo el año', '2025-06-05');
+('7503012345678', 30, 80, 'Todo el año', '2025-06-05'),
+('7501000132160', 100, 200, 'Todo el año', '2025-12-30'),
+('7501020510149', 80, 150, 'Todo el año', '2025-10-15'),
+('7501035910013', 50, 120, 'Todo el año', '2026-01-20'),
+('7501058604522', 60, 100, 'Todo el año', '2026-07-10'),
+('7503012345679', 40, 90, 'Todo el año', '2025-05-12'),
+('7501000132177', 75, 150, 'Todo el año', '2025-11-25'),
+('7501020510150', 90, 200, 'Todo el año', '2025-12-05'),
+('7501035910014', 45, 110, 'Todo el año', '2026-02-28'),
+('7501058604523', 30, 80, 'Todo el año', '2026-06-15'),
+('7503012345680', 50, 100, 'Todo el año', '2025-07-30');
 
 
 INSERT INTO cliente (telefono_cliente, nombre, apellido, correo_electronico) VALUES
@@ -137,7 +157,15 @@ INSERT INTO cliente (telefono_cliente, nombre, apellido, correo_electronico) VAL
 ('5543216789', 'Gabriel', 'Urbina', 'gabrielosky@yahoo.com'),
 ('5588123456', 'Luis', 'Burguete', 'burguetuis@hotmail.com'),
 ('5577654321', 'Felipe', 'Espinosa', 'lfespin@outlook.com'),
-('5599988776', 'Adriana', 'Lara', 'adri.lara@gmail.com');
+('5599988776', 'Adriana', 'Lara', 'adri.lara@gmail.com'),
+('5512345678', 'María', 'López', 'maria.lopez@gmail.com'),
+('5523456789', 'José', 'Martínez', 'jose.martinez@hotmail.com'),
+('5534567890', 'Maria', 'González', 'mari.gonzalez@yahoo.com'),
+('5545678901', 'Carlos', 'Ramírez', 'carlos.ramirez@gmail.com'),
+('5556789012', 'Laura', 'Hernández', 'laura.hernandez@outlook.com'),
+('5567890123', 'Alan', 'Ichin', 'alansillo.ichin@gmail.com'),
+('5578901234', 'Verónica', 'Sánchez', 'veronica.sanchez@hotmail.com'),
+('5589012345', 'Arnol', 'Torres', 'eduardo.torres@gmail.com');
 
 
 INSERT INTO empleado (idempleado, nombre, apellidos, telefono, correo_electronico, contraseña) VALUES
