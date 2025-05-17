@@ -2,10 +2,11 @@
 import wx
 from conexion import conectar
 
+# Función para mostrar el cuadro de mensaje emergente
 def mostrar_mensaje(titulo, mensaje):
     wx.MessageBox(mensaje, titulo, wx.OK | wx.ICON_INFORMATION)
 
-# Crear
+# Crear catgoria
 def crear_categoria(id_categoria, nombre):
     conn, cursor = conectar()
     if conn and cursor:
