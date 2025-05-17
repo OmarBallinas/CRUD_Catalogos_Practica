@@ -54,17 +54,39 @@ def actualizar_categoria(id_categoria, nombre):
             conn.close()
     else:
         mostrar_mensaje("Error", "No se pudo conectar a la base de datos.")
-
-# Eliminar
+        
 def eliminar_categoria(id_categoria):
     conn, cursor = conectar()
     if conn and cursor:
         try:
+            cursor.execute("SELECT COUNT(*) FROM articulo WHERE idcategoria = %s", (id_categoria,))
+            cantidad = cursor.fetchone()[0]
+            if cantidad > 0:
+                mensaje = f"La categoría tiene {cantidad} artículo(s) asociado(s).\n¿Deseas eliminar todo junto con los artículos e inventario?"
+                confirmacion = wx.MessageBox(mensaje, "Confirmar eliminación", wx.YES_NO | wx.ICON_WARNING)
+                if confirmacion == wx.NO:
+                    mostrar_mensaje("Cancelado", "Operación cancelada por el usuario.")
+                    return
+                
+                # Eliminar inventario relacionado a los artículos
+                cursor.execute("""
+                    DELETE inventario FROM inventario
+                    INNER JOIN articulo ON inventario.codigo_barras = articulo.codigo_barras
+                    WHERE articulo.idcategoria = %s
+                """, (id_categoria,))
+                
+                # Eliminar artículos relacionados a la categoría
+                cursor.execute("DELETE FROM articulo WHERE idcategoria = %s", (id_categoria,))
+                conn.commit()
+            
+            # Eliminar la categoría
             cursor.execute("DELETE FROM categoria WHERE idcategoria = %s", (id_categoria,))
             conn.commit()
-            mostrar_mensaje("Éxito", "Categoría eliminada exitosamente.")
+            mostrar_mensaje("Éxito", "Categoría y artículos relacionados eliminados correctamente.")
+        
         except Exception as e:
             mostrar_mensaje("Error", f"Error al eliminar categoría: {e}")
+        
         finally:
             cursor.close()
             conn.close()

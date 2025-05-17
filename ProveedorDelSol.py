@@ -77,7 +77,6 @@ def crear(event):
             """, (idproveedor, nombre, contacto, telefono, correo, direccion))
             conn.commit()
             mostrar_mensaje("Éxito", "Proveedor creado correctamente.")
-            limpiar_campos()
         except Exception as e:
             mostrar_mensaje("Error", f"No se pudo crear el proveedor:\n{e}")
         finally:
@@ -133,7 +132,6 @@ def actualizar(event):
             """, (nombre, contacto, telefono, correo, direccion, idproveedor))
             conn.commit()
             mostrar_mensaje("Actualizado", f"Proveedor {idproveedor} actualizado correctamente.")
-            limpiar_campos()
         except Exception as e:
             mostrar_mensaje("Error", f"No se pudo actualizar el proveedor:\n{e}")
         finally:

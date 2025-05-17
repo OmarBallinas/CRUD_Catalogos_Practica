@@ -65,18 +65,38 @@ def actualizar_articulo(codigo, nombre, descripcion, precio, unidad, descuento, 
 # Eliminar artículo
 def eliminar_articulo(codigo):
     conn, cursor = conectar()
-    if conn and cursor:
-        try:
-            cursor.execute("DELETE FROM articulo WHERE codigo_barras = %s", (codigo,))
-            conn.commit()
-            mostrar_mensaje("Éxito", "Artículo eliminado exitosamente.")
-        except Exception as e:
-            mostrar_mensaje("Error", f"Error al eliminar el artículo: {e}")
-        finally:
-            cursor.close()
-            conn.close()
-    else:
+    if not conn or not cursor:
         mostrar_mensaje("Error", "No se pudo conectar a la base de datos.")
+        return
+    
+    try:
+        cursor.execute("SELECT nombre FROM articulo WHERE codigo_barras = %s", (codigo,))
+        fila = cursor.fetchone()
+        if not fila:
+            mostrar_mensaje("Información", "El artículo no existe o ya fue eliminado.")
+            return
+        nombre_articulo = fila[0]
+        
+        # Confirmar con el usuario
+        mensaje = f"¿Deseas eliminar el artículo '{nombre_articulo}' y todos sus registros relacionados (inventario)?"
+        confirmacion = wx.MessageBox(mensaje, "Confirmar eliminación", wx.YES_NO | wx.ICON_WARNING)
+        if confirmacion != wx.YES:
+            mostrar_mensaje("Cancelado", "Operación cancelada por el usuario.")
+            return
+        
+        # Eliminar registros relacionados en orden para no romper FK
+        cursor.execute("DELETE FROM inventario WHERE codigo_barras = %s", (codigo,))
+        
+        # Finalmente eliminar el artículo
+        cursor.execute("DELETE FROM articulo WHERE codigo_barras = %s", (codigo,))
+        conn.commit()
+        mostrar_mensaje("Éxito", f"Artículo '{nombre_articulo}' eliminado correctamente.")
+    except Exception as e:
+        conn.rollback()
+        mostrar_mensaje("Error", f"Error al eliminar el artículo: {e}")
+    finally:
+        cursor.close()
+        conn.close()
 
 # Interfaz gráfica
 app = wx.App()
