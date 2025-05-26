@@ -3,8 +3,9 @@ import wx
 from conexion import conectar
 
 class CompraGUI(wx.Frame):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, idempleado=None):
         super().__init__(parent, title="Registrar Compra", size=(800, 600))
+        self.idempleado = idempleado
         self.panel = wx.Panel(self)
         self.lista_carrito = []
         self.total_general = 0

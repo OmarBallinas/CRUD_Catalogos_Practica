@@ -1,15 +1,18 @@
 # ventas_gui.py
 import wx
 from conexion import conectar
+from ClienteDelSol import ClienteCRUD  # Importamos el CRUD de clientes
 
 class VentaGUI(wx.Frame):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, idempleado=None):
         super().__init__(parent, title="Registrar Venta", size=(800, 600))
+        self.idempleado = idempleado
         self.panel = wx.Panel(self)
         self.lista_carrito = []
         self.total_general = 0
-        self.idempleado = "1"
-        self.telefono_cliente = ""
+        self.idempleado = "1"  # Deberás obtener esto del login real
+
+        self.telefono_cliente = None  # Puede ser None si no se selecciona cliente
 
         self.crear_interfaz()
         self.Centre()
@@ -18,45 +21,68 @@ class VentaGUI(wx.Frame):
     def mensaje(self, titulo, mensaje):
         wx.MessageBox(mensaje, titulo, wx.OK | wx.ICON_INFORMATION)
 
+    def validar_campos(self):
+        return bool(self.codigo_seleccionado and self.txt_cantidad.GetValue())
+
     def crear_interfaz(self):
+        """Construye la interfaz gráfica."""
         lbl_titulo = wx.StaticText(self.panel, label="REGISTRAR VENTA", pos=(320, 10))
         fuente_titulo = wx.Font(14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         lbl_titulo.SetFont(fuente_titulo)
 
+        # Cliente
         wx.StaticText(self.panel, label="Teléfono Cliente:", pos=(50, 50))
         self.txt_cliente = wx.TextCtrl(self.panel, pos=(200, 50), size=(200, -1))
 
-        wx.StaticText(self.panel, label="Código / Nombre:", pos=(50, 90))
-        self.txt_codigo = wx.TextCtrl(self.panel, pos=(200, 90), size=(200, -1), style=wx.TE_PROCESS_ENTER)
-        self.txt_codigo.Bind(wx.EVT_TEXT_ENTER, self.buscar_articulo)  # Escáner externo simula Enter
-        self.txt_codigo.SetFocus()  # Cursor listo para escanear
+        # Botón para dejar vacío
+        self.btn_vacio = wx.Button(self.panel, label="Vacío", pos=(410, 47), size=(70, 25))
+        self.btn_vacio.Bind(wx.EVT_BUTTON, self.dejar_cliente_vacio)
 
+        # Botón para abrir el CRUD de clientes
+        self.btn_buscar_cliente = wx.Button(self.panel, label="Buscar/Crear", pos=(500, 47), size=(100, 25))
+        self.btn_buscar_cliente.Bind(wx.EVT_BUTTON, lambda e: ClienteCRUD())
+
+        # Código de barras o nombre
+        wx.StaticText(self.panel, label="Código / Nombre:", pos=(50, 90))
+        self.txt_codigo = wx.TextCtrl(self.panel, pos=(200, 90), size=(200, -1))
         self.btn_buscar = wx.Button(self.panel, label="Buscar", pos=(410, 85))
         self.btn_buscar.Bind(wx.EVT_BUTTON, self.buscar_articulo)
 
+        # Cantidad
         wx.StaticText(self.panel, label="Cantidad:", pos=(50, 130))
         self.txt_cantidad = wx.TextCtrl(self.panel, pos=(200, 130), size=(100, -1))
         self.txt_cantidad.SetValue("1")
 
+        # Botón Añadir al carrito
         self.btn_agregar = wx.Button(self.panel, label="Agregar al Carrito", pos=(320, 125))
         self.btn_agregar.Bind(wx.EVT_BUTTON, self.agregar_al_carrito)
 
+        # Lista del carrito
         cols = ['Código', 'Nombre', 'Precio', 'Cantidad', 'Subtotal']
         self.lista = wx.ListCtrl(self.panel, style=wx.LC_REPORT, pos=(50, 170), size=(680, 250))
         for i, col in enumerate(cols):
             self.lista.InsertColumn(i, col, width=150)
 
+        # Totales
         self.lbl_total = wx.StaticText(self.panel, label="Total: $0.00", pos=(600, 430))
         fuente_total = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         self.lbl_total.SetFont(fuente_total)
 
+        # Botones
         self.btn_finalizar = wx.Button(self.panel, label="Finalizar Venta", pos=(600, 460), size=(150, 40))
         self.btn_finalizar.Bind(wx.EVT_BUTTON, self.finalizar_venta)
-
         self.btn_limpiar = wx.Button(self.panel, label="Limpiar", pos=(440, 460), size=(120, 40))
         self.btn_limpiar.Bind(wx.EVT_BUTTON, lambda e: self.limpiar_todo())
 
+        # Campos ocultos para almacenamiento temporal
         self.codigo_seleccionado = None
+        self.nombre_articulo = ""
+        self.precio_articulo = 0
+
+    def dejar_cliente_vacio(self, event):
+        self.txt_cliente.SetValue("")
+        self.telefono_cliente = None
+        self.mensaje("Cliente", "Venta sin cliente asignado.")
 
     def buscar_articulo(self, event):
         valor = self.txt_codigo.GetValue().strip()
@@ -77,8 +103,6 @@ class VentaGUI(wx.Frame):
                     self.codigo_seleccionado = resultado[0]
                     self.nombre_articulo = resultado[1]
                     self.precio_articulo = resultado[2]
-                    self.mensaje("Artículo encontrado", f"{self.nombre_articulo} - ${self.precio_articulo:.2f}")
-                    self.txt_cantidad.SetFocus()
                 else:
                     self.codigo_seleccionado = None
                     self.mensaje("Error", "Artículo no encontrado.")
@@ -99,6 +123,7 @@ class VentaGUI(wx.Frame):
             if cantidad <= 0:
                 raise ValueError
 
+            # Verificar inventario
             conn, cursor = conectar()
             cursor.execute("SELECT existencia_actual FROM inventario WHERE codigo_barras = %s",
                            (self.codigo_seleccionado,))
@@ -148,12 +173,32 @@ class VentaGUI(wx.Frame):
             conn, cursor = conectar()
             cursor.execute("START TRANSACTION")
 
+            # Obtener datos del cliente
+            telefono_cliente = self.txt_cliente.GetValue().strip()
+            if telefono_cliente:
+                cursor.execute("SELECT telefono_cliente FROM cliente WHERE telefono_cliente = %s", (telefono_cliente,))
+                resultado = cursor.fetchone()
+                if not resultado:
+                    self.mensaje("Error", "El cliente no existe.")
+                    conn.rollback()
+                    return
+                self.telefono_cliente = telefono_cliente
+            else:
+                self.telefono_cliente = None  # Permitimos NULL
+
+            # Insertar en venta
             cursor.execute("""
                 INSERT INTO venta (fecha, total, tipo_pago, idempleado, telefono_cliente)
                 VALUES (NOW(), %s, %s, %s, %s)
-            """, (round(self.total_general * 1.16, 2), "Efectivo", self.idempleado, self.telefono_cliente))
+            """, (
+                round(self.total_general * 1.16, 2),
+                "Efectivo",
+                self.idempleado,
+                self.telefono_cliente
+            ))
             folio = cursor.lastrowid
 
+            # Insertar en detalles_venta
             for item in self.lista_carrito:
                 cursor.execute("""
                     INSERT INTO detalles_venta (folio_de_ticket, codigo_barras, cantidad_articulo,
@@ -168,14 +213,13 @@ class VentaGUI(wx.Frame):
                     item["subtotal"]
                 ))
 
+                # Actualizar inventario
                 cursor.execute("""
                     UPDATE inventario SET existencia_actual = existencia_actual - %s
                     WHERE codigo_barras = %s
                 """, (item["cantidad"], item["codigo"]))
 
             conn.commit()
-            cursor.close()
-            conn.close()
             self.mensaje("Éxito", f"Venta registrada. Folio: {folio}")
             self.limpiar_todo()
 
@@ -191,7 +235,8 @@ class VentaGUI(wx.Frame):
         self.lista_carrito.clear()
         self.total_general = 0
         self.lbl_total.SetLabel("Total: $0.00")
+        self.txt_cliente.SetValue("")
+        self.telefono_cliente = None
         self.txt_codigo.SetValue("")
         self.txt_cantidad.SetValue("1")
-        self.txt_cliente.SetValue("")
         self.txt_codigo.SetFocus()

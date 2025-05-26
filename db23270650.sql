@@ -113,8 +113,9 @@ INSERT INTO categoria (idcategoria, nombre) VALUES
 (0002, 'Botanas'),
 (0003, 'Limpieza del hogar'),
 (0004, 'Cuidado personal'),
-(0005, 'Panadería');
-
+(0005, 'Panadería'),
+(0006, 'Jugueteria'),
+(0007, 'Ropa y Calzado');
 
 INSERT INTO articulo (codigo_barras, nombre, descripcion, precio, unidad, descuento, idcategoria) VALUES
 ('7501000132153', 'Coca-Cola 600ml', 'Refresco sabor cola en botella de PET', 16.00, 'botella', 0.0, 0001),
@@ -131,8 +132,13 @@ INSERT INTO articulo (codigo_barras, nombre, descripcion, precio, unidad, descue
 ('7501020510150', 'Sabritas Original 150g', 'Botana de papas clásicas', 22.50, 'bolsa', 0.0, 0002),
 ('7501035910014', 'Cloralex 1L', 'Cloro líquido para limpieza', 28.00, 'litro', 0.0, 0003),
 ('7501058604523', 'Sensodyne 75ml', 'Pasta dental para dientes sensibles', 35.00, 'tubo', 0.0, 0004),
-('7503012345680', 'Cuernito', 'Pan dulce en forma de cuerno', 10.00, 'pieza', 0.0, 0005);
-
+('7503012345680', 'Cuernito', 'Pan dulce en forma de cuerno', 10.00, 'pieza', 0.0, 0005),
+('7504000132150', 'Playera Blanca Talla M', 'Camiseta de algodón cuello redondo', 89.00, 'pieza', 5.0, 0007),
+('7504000132151', 'Pantalón Mezclilla Talla 32', 'Pantalón de mezclilla azul oscuro', 249.00, 'pieza', 0.0, 0007),
+('7504000132152', 'Calcetas Deportivas (3 pares)', 'Calcetas blancas unisex', 59.00, 'paquete', 0.0, 0007),
+('7505000132153', 'Carrito de Juguete', 'Carro de plástico con fricción', 45.00, 'pieza', 0.0, 0006),
+('7505000132154', 'Muñeca Clásica', 'Muñeca de vinil con vestido rosa', 120.00, 'pieza', 10.0, 0006),
+('7505000132155', 'Lego Mini Set 50pcs', 'Juego de bloques armables', 99.00, 'caja', 0.0, 0006);
 
 INSERT INTO inventario (codigo_barras, existencia_actual, capacidad_maxima, temporada, fecha_caducidad) VALUES
 ('7501000132153', 95, 200, 'Todo el año', '2025-12-31'),
@@ -149,35 +155,41 @@ INSERT INTO inventario (codigo_barras, existencia_actual, capacidad_maxima, temp
 ('7501020510150', 90, 200, 'Todo el año', '2025-12-05'),
 ('7501035910014', 45, 110, 'Todo el año', '2026-02-28'),
 ('7501058604523', 30, 80, 'Todo el año', '2026-06-15'),
-('7503012345680', 50, 100, 'Todo el año', '2025-07-30');
-
+('7503012345680', 50, 100, 'Todo el año', '2025-07-20'),
+('7504000132150', 50, 150, 'Todo el año', '2025-07-10'),
+('7504000132151', 60, 700, 'Todo el año', '2025-07-12'),
+('7504000132152', 30, 100, 'Todo el año', '2025-07-09'),
+('7505000132153',  40, 140, 'Todo el año', '2026-02-18'),
+('7505000132154',  71, 210, 'Todo el año', '2026-02-28'),
+('7505000132155',  41, 170, 'Todo el año', '2026-02-08');
 
 INSERT INTO cliente (telefono_cliente, nombre, apellido, correo_electronico) VALUES
-('5567891234', 'Carolina', 'Ortega', 'caritoarqui@gmail.com'),
-('5543216789', 'Gabriel', 'Urbina', 'gabrielosky@yahoo.com'),
-('5588123456', 'Luis', 'Burguete', 'burguetuis@hotmail.com'),
-('5577654321', 'Felipe', 'Espinosa', 'lfespin@outlook.com'),
-('5599988776', 'Adriana', 'Lara', 'adri.lara@gmail.com'),
-('5512345678', 'María', 'López', 'maria.lopez@gmail.com'),
-('5523456789', 'José', 'Martínez', 'jose.martinez@hotmail.com'),
-('5534567890', 'Maria', 'González', 'mari.gonzalez@yahoo.com'),
-('5545678901', 'Carlos', 'Ramírez', 'carlos.ramirez@gmail.com'),
-('5556789012', 'Laura', 'Hernández', 'laura.hernandez@outlook.com'),
-('5567890123', 'Alan', 'Ichin', 'alansillo.ichin@gmail.com'),
-('5578901234', 'Verónica', 'Sánchez', 'veronica.sanchez@hotmail.com'),
-('5589012345', 'Arnol', 'Torres', 'eduardo.torres@gmail.com');
+('9615556232', 'Carolina', 'Ortega', 'caritoarqui@gmail.com'),
+('9615556111', 'Gabriel', 'Urbina', 'gabrielosky@yahoo.com'),
+('9615556222', 'Luis', 'Burguete', 'burguetuis@hotmail.com'),
+('9615556333', 'Felipe', 'Espinosa', 'lfespin@outlook.com'),
+('9615556444', 'Adriana', 'Lara', 'adri.lara@gmail.com'),
+('9615556555', 'María', 'López', 'maria.lopez@gmail.com'),
+('9615556666', 'José', 'Martínez', 'jose.martinez@hotmail.com'),
+('9615556777', 'Maria', 'González', 'mari.gonzalez@yahoo.com'),
+('9615556888', 'Carlos', 'Ramírez', 'carlos.ramirez@gmail.com'),
+('9615556999', 'Laura', 'Hernández', 'laura.hernandez@outlook.com'),
+('9615512333', 'Alan', 'Ichin', 'alansillo.ichin@gmail.com'),
+('9617622667', 'Verónica', 'Sánchez', 'veronica.sanchez@hotmail.com'),
+('9619877112', 'Arnol', 'Torres', 'eduardo.torres@gmail.com');
 
 
 INSERT INTO empleado (idempleado, nombre, apellidos, telefono, correo_electronico, contraseña) VALUES
-(1, 'Jorge', 'Hernández Díaz', '5551234567', 'jorge.hdz@tienda.mx', 'jorgehernandez'),
-(2, 'Gustavo', 'Zenteno Mendoza', '5562345678', 'gust.zent@tienda.mx', 'gustavozenteno'),
-(3, 'Pedro', 'García León', '5573456789', 'pedro.gl@tienda.mx', 'pedrogarcia'),
-(4, 'Valeria', 'Martinez Diaz', '5584567890', 'valeria.martin@tienda.mx', 'valeriamartinez'),
-(5, 'Andrés', 'Zapata Cruz', '5595678901', 'andres.zc@tienda.mx', 'andreszapata');
+(1, 'Jorge', 'Hernández Díaz', '9615423111', 'jorge.hdz@tienda.mx', 'jorgehernandez'),
+(2, 'Gustavo', 'Zenteno Mendoza', '9617754232', 'gust.zent@tienda.mx', 'gustavozenteno'),
+(3, 'Pedro', 'García León', '9678896542', 'pedro.gl@tienda.mx', 'pedrogarcia'),
+(4, 'Valeria', 'Martinez Diaz', '9615425322', 'valeria.martin@tienda.mx', 'valeriamartinez'),
+(5, 'Andrés', 'Zapata Cruz', '9613345334', 'andres.zc@tienda.mx', 'andreszapata');
 
 INSERT INTO proveedor (idproveedor, nombre, contacto, telefono, correo_electronico, direccion) VALUES
-(1, 'Coca-Cola FEMSA', 'Marisa Rios', '5551010101', 'ventas@coca-cola.com', 'Col. Vida Mejor, TGZ'),
-(2, 'PepsiCo México', 'Daniel Rincon', '5552020202', 'contacto@pepsico.com', 'Calz. del Sumidero, TGZ'),
-(3, 'Colgate-Palmolive', 'Ana De la Torre', '5553030303', 'ventas@colgate.com', 'San pedro Porgresivo, TGZ'),
-(4, 'Bimbo S.A.', 'Emilio Soberano', '5554040404', 'ventas@bimbo.com', 'Av. Panadería 456, Terán, TGZ'),
-(5, 'Fabuloso Distribuciones', 'Nadia Artemisa', '5555050505', 'contacto@fabuloso.mx', 'Calle Higiene 789, TGZ');
+(1, 'Coca-Cola FEMSA', 'Marisa Rios', '9615426354', 'ventas@coca-cola.com', 'Col. Vida Mejor, TGZ'),
+(2, 'PepsiCo México', 'Daniel Rincon', '9617624353', 'contacto@pepsico.com', 'Calz. del Sumidero, TGZ'),
+(3, 'Colgate-Palmolive', 'Ana De la Torre', '9675412634', 'ventas@colgate.com', 'San pedro Porgresivo, TGZ'),
+(4, 'Bimbo S.A.', 'Emilio Soberano', '9675436273', 'ventas@bimbo.com', 'Av. Panadería 456, Terán, TGZ'),
+(5, 'Fabuloso Distribuciones', 'Nadia Artemisa', '9615624532', 'contacto@fabuloso.mx', 'Calle Higiene 789, TGZ'),
+(6, 'Ropa y Calzado', 'Mario Alfredo', '9615426343', 'contacto@fabuloso.mx', 'Calle Higiene 789, TGZ');

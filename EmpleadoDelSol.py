@@ -3,8 +3,10 @@ import wx
 from conexion import conectar
 
 class EmpleadoCRUD(wx.Frame):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, es_gerente=False, modo_registro=False):
         super().__init__(parent, title='Catálogo de Empleados', size=(600, 470))
+        self.es_gerente = es_gerente
+        self.modo_registro = modo_registro
         self.panel = wx.Panel(self)
         self.crear_interfaz()
         self.Centre()
@@ -58,17 +60,26 @@ class EmpleadoCRUD(wx.Frame):
         self.txt_conf_contrasena = wx.TextCtrl(self.panel, pos=(200, 290), size=tamano_texto, style=wx.TE_PASSWORD)
         self.txt_conf_contrasena.SetBackgroundColour(wx.Colour(255, 255, 230))
 
-        # Botones
-        self.btn_crear = wx.Button(self.panel, label=" Crear ", pos=(50, 350), size=(120, 40))
-        self.btn_buscar = wx.Button(self.panel, label=" Buscar ", pos=(180, 350), size=(120, 40))
-        self.btn_actualizar = wx.Button(self.panel, label=" Actualizar ", pos=(310, 350), size=(120, 40))
-        self.btn_eliminar = wx.Button(self.panel, label=" Eliminar ", pos=(440, 350), size=(120, 40))
+        # Botones condicionales
+        if self.modo_registro:
+            self.btn_crear = wx.Button(self.panel, label=" Crear ", pos=(50, 350), size=(120, 40))
+            self.btn_buscar = self.btn_actualizar = self.btn_eliminar = None
+        else:
+            # Muestra todos los botones si no es modo registro
+            self.btn_crear = wx.Button(self.panel, label=" Crear ", pos=(50, 350), size=(120, 40))
+            self.btn_buscar = wx.Button(self.panel, label=" Buscar ", pos=(180, 350), size=(120, 40))
+            self.btn_actualizar = wx.Button(self.panel, label=" Actualizar ", pos=(310, 350), size=(120, 40))
+            self.btn_eliminar = wx.Button(self.panel, label=" Eliminar ", pos=(440, 350), size=(120, 40))
 
-        # Eventos
-        self.btn_crear.Bind(wx.EVT_BUTTON, self.on_crear)
-        self.btn_buscar.Bind(wx.EVT_BUTTON, self.on_buscar)
-        self.btn_actualizar.Bind(wx.EVT_BUTTON, self.on_actualizar)
-        self.btn_eliminar.Bind(wx.EVT_BUTTON, self.on_eliminar)
+        # Eventos - Solo si los botones existen
+        if self.btn_crear:
+            self.btn_crear.Bind(wx.EVT_BUTTON, self.on_crear)
+        if self.btn_buscar:
+            self.btn_buscar.Bind(wx.EVT_BUTTON, self.on_buscar)
+        if self.btn_actualizar:
+            self.btn_actualizar.Bind(wx.EVT_BUTTON, self.on_actualizar)
+        if self.btn_eliminar:
+            self.btn_eliminar.Bind(wx.EVT_BUTTON, self.on_eliminar)
 
     def on_crear(self, event):
         campos = [
@@ -84,7 +95,10 @@ class EmpleadoCRUD(wx.Frame):
         if error:
             self.mensaje("Advertencia", error)
         else:
-            self.agregar_empleado(*campos[:-1])  # Sin confirmación de contraseña
+            if not hasattr(self, 'es_gerente'):
+                self.mensaje("Acceso Denegado", "Solo el gerente puede registrar nuevos empleados.")
+                return
+            self.agregar_empleado(*campos[:-1])
 
     def on_buscar(self, event):
         idemp = self.txt_idempleado.GetValue()
