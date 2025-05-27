@@ -2,10 +2,8 @@ import wx
 from conexion import conectar
 
 class EmpleadoCRUD(wx.Frame):
-    def __init__(self, parent=None, es_gerente=False, modo_registro=False):
+    def __init__(self, parent=None):
         super().__init__(parent, title='Catálogo de Empleados', size=(1200, 800))
-        self.es_gerente = es_gerente
-        self.modo_registro = modo_registro
         self.panel = wx.Panel(self)
         self.lista_resultados = None
         self.txt_idempleado = None
@@ -17,7 +15,7 @@ class EmpleadoCRUD(wx.Frame):
         self.txt_conf_contrasena = None
         self.btn_consultar = None
 
-        # Llama a crear_interfaz después de inicializar atributos
+        # Inicializamos atributos antes de usarlos
         self.crear_interfaz()
         self.Centre()
         self.Show()
@@ -46,7 +44,7 @@ class EmpleadoCRUD(wx.Frame):
         return True
 
     def validar_campos(self):
-        """Valida que los campos obligatorios tengan datos."""
+        """Valida que los campos obligatorios no estén vacíos."""
         idemp = self.txt_idempleado.GetValue().strip()
         nombre = self.txt_nombre.GetValue().strip()
         apellidos = self.txt_apellidos.GetValue().strip()
@@ -63,9 +61,9 @@ class EmpleadoCRUD(wx.Frame):
             return "Teléfono debe tener 10 dígitos."
         if correo and '@' not in correo:
             return "Correo electrónico no válido."
-        if len(contrasena) < 6 and contrasena:
+        if len(contrasena) < 6:
             return "La contraseña debe tener al menos 6 caracteres."
-        if contrasena and contrasena != conf_contrasena:
+        if contrasena != conf_contrasena:
             return "Las contraseñas no coinciden."
 
         return None
@@ -108,7 +106,9 @@ class EmpleadoCRUD(wx.Frame):
         self.txt_telefono.SetBackgroundColour(wx.Colour(255, 255, 230))
         grid_sizer.Add(self.txt_telefono, flag=wx.EXPAND)
 
-        # Campo Correo + botones de autocompletado
+        # Campo Correo + botones sugeridos
+        grid_sizer.Add(wx.StaticText(self.panel, label="Correo Electrónico:"), flag=wx.ALIGN_CENTER_VERTICAL)
+        
         sizer_correo_btns = wx.BoxSizer(wx.HORIZONTAL)
         self.txt_correo = wx.TextCtrl(self.panel, size=(180, -1))
         self.txt_correo.SetBackgroundColour(wx.Colour(255, 255, 230))
@@ -116,6 +116,7 @@ class EmpleadoCRUD(wx.Frame):
         btn_gmail = wx.Button(self.panel, label="gmail.com", size=(90, 25))
         btn_hotmail = wx.Button(self.panel, label="hotmail.com", size=(90, 25))
         btn_outlook = wx.Button(self.panel, label="outlook.com", size=(90, 25))
+
         for btn in [btn_gmail, btn_hotmail, btn_outlook]:
             btn.SetBackgroundColour(wx.Colour(44, 62, 80))
             btn.SetForegroundColour(wx.WHITE)
@@ -126,8 +127,7 @@ class EmpleadoCRUD(wx.Frame):
         sizer_correo_btns.Add(btn_hotmail, flag=wx.LEFT, border=5)
         sizer_correo_btns.Add(btn_outlook, flag=wx.LEFT, border=5)
 
-        grid_sizer.Add(wx.StaticText(self.panel, label="Correo Electrónico:"), flag=wx.ALIGN_CENTER_VERTICAL)
-        grid_sizer.Add(sizer_correo_btns, flag=wx.EXPAND)
+        grid_sizer.Add(sizer_correo_btns)
 
         # Campo Contraseña
         grid_sizer.Add(wx.StaticText(self.panel, label="Contraseña:"), flag=wx.ALIGN_CENTER_VERTICAL)
@@ -192,17 +192,20 @@ class EmpleadoCRUD(wx.Frame):
         self.btn_limpiar.Bind(wx.EVT_BUTTON, self.limpiar_campos)
         self.btn_regresar.Bind(wx.EVT_BUTTON, self.on_regresar)
 
+        # Búsqueda automática mientras escribe
         self.txt_idempleado.Bind(wx.EVT_TEXT, self.busqueda_rapida)
         self.txt_idempleado.Bind(wx.EVT_TEXT_ENTER, self.on_buscar)
 
+        # Doble clic en tabla
         self.lista_resultados.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.rellenar_desde_tabla)
 
-        self.btn_consultar.Bind(wx.EVT_BUTTON, self.consultar_contrasena)
-
-        # Eventos de autocompletado de correo
+        # Autocompletado de correo
         btn_gmail.Bind(wx.EVT_BUTTON, lambda e: self.autocompletar_correo("gmail.com"))
         btn_hotmail.Bind(wx.EVT_BUTTON, lambda e: self.autocompletar_correo("hotmail.com"))
         btn_outlook.Bind(wx.EVT_BUTTON, lambda e: self.autocompletar_correo("outlook.com"))
+
+        # Evento consultar contraseña
+        self.btn_consultar.Bind(wx.EVT_BUTTON, self.consultar_contrasena)
 
     def autocompletar_correo(self, dominio):
         texto = self.txt_correo.GetValue().strip()
@@ -213,55 +216,10 @@ class EmpleadoCRUD(wx.Frame):
         else:
             self.txt_correo.SetValue(f"{texto}@{dominio}")
 
-    def consultar_contrasena(self, event):
-        id_empleado = self.txt_idempleado.GetValue().strip()
-        if not id_empleado:
-            self.mensaje("Error", "Ingrese el ID del empleado.")
-            return
-
-        dlg = wx.TextEntryDialog(
-            self,
-            "Ingrese la clave del gerente:",
-            "Autenticación Requerida",
-            "",
-            style=wx.TE_PASSWORD | wx.OK | wx.CANCEL
-        )
-
-        if dlg.ShowModal() == wx.ID_OK:
-            clave = dlg.GetValue()
-            if clave != "1234":
-                self.mensaje("Acceso Denegado", "Clave incorrecta.")
-                dlg.Destroy()
-                return
-            conn, cursor = conectar()
-            if conn and cursor:
-                try:
-                    cursor.execute("SELECT contraseña FROM empleado WHERE idempleado = %s", (int(id_empleado),))
-                    resultado = cursor.fetchone()
-                    if resultado:
-                        self.mensaje("Contraseña", f"La contraseña del empleado '{id_empleado}' es:\n\n{resultado[0]}")
-                    else:
-                        self.mensaje("No encontrado", "Empleado no encontrado.")
-                except Exception as e:
-                    self.mensaje("Error", f"No se pudo recuperar la contraseña: {e}")
-                finally:
-                    cursor.close()
-                    conn.close()
-            else:
-                self.mensaje("Error", "No se pudo conectar a la base de datos.")
-        else:
-            self.mensaje("Cancelado", "Operación cancelada por el usuario.")
-
-        dlg.Destroy()
-
     def on_crear(self, event):
         error = self.validar_campos()
         if error:
             self.mensaje("Advertencia", error)
-            return
-
-        if not self.es_gerente:
-            self.mensaje("Acceso denegado", "Solo el gerente puede registrar nuevos empleados.")
             return
 
         try:
@@ -281,16 +239,14 @@ class EmpleadoCRUD(wx.Frame):
 
     def on_buscar(self, event):
         idempleado = self.txt_idempleado.GetValue().strip()
-        if not idempleado:
-            self.mensaje("Advertencia", "Ingrese un ID de empleado.")
+        if not idempleado.isdigit():
+            self.mensaje("Advertencia", "Ingrese un ID válido.")
             return
 
         conn, cursor = conectar()
         if conn and cursor:
             try:
-                cursor.execute("""
-                    SELECT * FROM empleado WHERE idempleado = %s
-                """, (int(idempleado),))
+                cursor.execute("SELECT * FROM empleado WHERE idempleado = %s", (int(idempleado),))
                 resultado = cursor.fetchone()
                 if resultado:
                     self.lista_resultados.DeleteAllItems()
@@ -300,15 +256,13 @@ class EmpleadoCRUD(wx.Frame):
                     self.lista_resultados.SetItem(idx, 3, str(resultado[3]) if resultado[3] else "")
                     self.lista_resultados.SetItem(idx, 4, str(resultado[4]) if resultado[4] else "")
 
-                    # Rellenar campos
+                    # Rellenar campos completos, incluyendo contraseñas
                     self.txt_nombre.SetValue(resultado[1])
                     self.txt_apellidos.SetValue(resultado[2])
                     self.txt_telefono.SetValue(str(resultado[3]) if resultado[3] else "")
                     self.txt_correo.SetValue(str(resultado[4]) if resultado[4] else "")
                     self.txt_contrasena.SetValue(resultado[5])
                     self.txt_conf_contrasena.SetValue(resultado[5])
-                    if self.modo_registro:
-                        self.txt_conf_contrasena.SetValue(resultado[5])
                 else:
                     self.lista_resultados.DeleteAllItems()
                     self.mensaje("Información", "Empleado no encontrado.")
@@ -372,33 +326,74 @@ class EmpleadoCRUD(wx.Frame):
                     self.txt_conf_contrasena.SetValue(resultado[5])
 
     def on_actualizar(self, event):
-        error = self.validar_campos()
-        if error:
-            self.mensaje("Advertencia", error)
-        else:
-            self.actualizar_empleado(
-                int(self.txt_idempleado.GetValue()),
-                self.txt_nombre.GetValue(),
-                self.txt_apellidos.GetValue(),
-                self.txt_telefono.GetValue(),
-                self.txt_correo.GetValue(),
-                self.txt_contrasena.GetValue()
-            )
+        idempleado = self.txt_idempleado.GetValue().strip()
+        if not idempleado:
+            self.mensaje("Advertencia", "Por favor, ingrese el ID del empleado.")
+            return
+
+        dlg = wx.TextEntryDialog(self, "Ingrese su contraseña:", "Autenticación Requerida", "", wx.TE_PASSWORD)
+        if dlg.ShowModal() == wx.ID_OK:
+            clave_ingresada = dlg.GetValue()
+            conn, cursor = conectar()
+            if conn and cursor:
+                try:
+                    cursor.execute("SELECT contraseña FROM empleado WHERE idempleado = %s", (int(idempleado),))
+                    fila = cursor.fetchone()
+                    if fila and fila[0] == clave_ingresada:
+                        self.actualizar_empleado(
+                            int(idempleado),
+                            self.txt_nombre.GetValue(),
+                            self.txt_apellidos.GetValue(),
+                            self.txt_telefono.GetValue(),
+                            self.txt_correo.GetValue(),
+                            self.txt_contrasena.GetValue()
+                        )
+                    else:
+                        self.mensaje("Acceso Denegado", "Contraseña incorrecta.")
+                except Exception as e:
+                    self.mensaje("Error", f"Error al verificar contraseña: {e}")
+                finally:
+                    cursor.close()
+                    conn.close()
+            else:
+                self.mensaje("Error", "No se pudo conectar a la base de datos.")
+        dlg.Destroy()
 
     def on_eliminar(self, event):
         idempleado = self.txt_idempleado.GetValue().strip()
         if not idempleado:
-            self.mensaje("Advertencia", "Ingrese un ID válido.")
+            self.mensaje("Advertencia", "Ingrese el ID del empleado.")
             return
 
-        confirmacion = wx.MessageBox(
-            f"¿Está seguro de eliminar al empleado '{idempleado}'?",
-            "Confirmar eliminación",
-            wx.YES_NO | wx.ICON_WARNING
-        )
-        if confirmacion == wx.YES:
-            self.eliminar_empleado(int(idempleado))
-            self.limpiar_campos(None)
+        dlg = wx.TextEntryDialog(self, "Ingrese su contraseña:", "Autenticación Requerida", "", wx.TE_PASSWORD)
+        if dlg.ShowModal() == wx.ID_OK:
+            clave_ingresada = dlg.GetValue()
+            conn, cursor = conectar()
+            if conn and cursor:
+                try:
+                    cursor.execute("SELECT contraseña FROM empleado WHERE idempleado = %s", (int(idempleado),))
+                    fila = cursor.fetchone()
+                    if fila and fila[0] == clave_ingresada:
+                        confirmacion = wx.MessageBox(
+                            f"¿Está seguro de eliminar al empleado '{idempleado}'? Se borrará permanentemente.",
+                            "Confirmar eliminación",
+                            wx.YES_NO | wx.ICON_WARNING
+                        )
+                        if confirmacion == wx.YES:
+                            cursor.execute("DELETE FROM empleado WHERE idempleado = %s", (int(idempleado),))
+                            conn.commit()
+                            self.mensaje("Éxito", "Empleado eliminado correctamente.")
+                            self.limpiar_campos(None)
+                    else:
+                        self.mensaje("Acceso denegado", "Contraseña incorrecta.")
+                except Exception as e:
+                    self.mensaje("Error", f"Error al verificar contraseña: {e}")
+                finally:
+                    cursor.close()
+                    conn.close()
+            else:
+                self.mensaje("Error", "No se pudo conectar a la base de datos.")
+        dlg.Destroy()
 
     def limpiar_campos(self, event):
         self.txt_idempleado.Clear()
@@ -454,6 +449,132 @@ class EmpleadoCRUD(wx.Frame):
             self.mensaje("Error", "No se pudo conectar a la base de datos.")
         return None
 
+    def on_actualizar(self, event):
+            idempleado = self.txt_idempleado.GetValue().strip()
+            if not idempleado:
+                self.mensaje("Advertencia", "Por favor, ingrese el ID del empleado.")
+                return
+
+            # Pedimos la contraseña del usuario actual
+            dlg = wx.TextEntryDialog(
+                self,
+                "Ingrese su contraseña:",
+                "Autenticación Requerida",
+                "",
+                style=wx.TE_PASSWORD | wx.OK | wx.CANCEL
+            )
+            if dlg.ShowModal() == wx.ID_OK:
+                clave_ingresada = dlg.GetValue()
+                conn, cursor = conectar()
+                if conn and cursor:
+                    try:
+                        cursor.execute("SELECT contraseña FROM empleado WHERE idempleado = %s", (int(idempleado),))
+                        fila = cursor.fetchone()
+                        if fila and fila[0] == clave_ingresada:
+                            # Validamos campos antes de actualizar
+                            error = self.validar_campos()
+                            if error:
+                                self.mensaje("Advertencia", error)
+                                return
+
+                            # Llamamos a la función para actualizar en la base de datos
+                            self.actualizar_empleado(
+                                int(idempleado),
+                                self.txt_nombre.GetValue(),
+                                self.txt_apellidos.GetValue(),
+                                self.txt_telefono.GetValue(),
+                                self.txt_correo.GetValue(),
+                                self.txt_contrasena.GetValue()
+                            )
+                        else:
+                            self.mensaje("Acceso Denegado", "Contraseña incorrecta.")
+                    except Exception as e:
+                        self.mensaje("Error", f"Error al verificar contraseña: {e}")
+                    finally:
+                        cursor.close()
+                        conn.close()
+                else:
+                    self.mensaje("Error", "No se pudo conectar a la base de datos.")
+            dlg.Destroy()
+
+    def on_eliminar(self, event):
+            idempleado = self.txt_idempleado.GetValue().strip()
+            if not idempleado:
+                self.mensaje("Advertencia", "Ingrese el ID del empleado.")
+                return
+
+            # Pedimos la contraseña del usuario actual
+            dlg = wx.TextEntryDialog(
+                self,
+                "Ingrese su contraseña:",
+                "Autenticación Requerida",
+                "",
+                style=wx.TE_PASSWORD | wx.OK | wx.CANCEL
+            )
+            if dlg.ShowModal() == wx.ID_OK:
+                clave_ingresada = dlg.GetValue()
+                conn, cursor = conectar()
+                if conn and cursor:
+                    try:
+                        cursor.execute("SELECT contraseña FROM empleado WHERE idempleado = %s", (int(idempleado),))
+                        fila = cursor.fetchone()
+                        if fila and fila[0] == clave_ingresada:
+                            confirmacion = wx.MessageBox(
+                                f"¿Está seguro de eliminar al empleado '{idempleado}'? Se borrará permanentemente.",
+                                "Confirmar eliminación",
+                                wx.YES_NO | wx.ICON_WARNING
+                            )
+                            if confirmacion == wx.YES:
+                                self.eliminar_empleado(int(idempleado))
+                                self.limpiar_campos(None)
+                        else:
+                            self.mensaje("Acceso denegado", "Contraseña incorrecta.")
+                    except Exception as e:
+                        self.mensaje("Error", f"Error al verificar contraseña: {e}")
+                    finally:
+                        cursor.close()
+                        conn.close()
+                else:
+                    self.mensaje("Error", "No se pudo conectar a la base de datos.")
+            dlg.Destroy()
+
+    def consultar_contrasena(self, event):
+        id_empleado = self.txt_idempleado.GetValue().strip()
+        if not id_empleado:
+            self.mensaje("Error", "Ingrese el ID del empleado.")
+            return
+
+        dlg = wx.TextEntryDialog(
+            self,
+            "Ingrese la clave del gerente:",
+            "Autenticación Requerida",
+            "",
+            style=wx.TE_PASSWORD | wx.OK | wx.CANCEL
+        )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            clave = dlg.GetValue()
+            if clave != "1234":
+                self.mensaje("Acceso denegado", "Clave del gerente incorrecta.")
+            else:
+                conn, cursor = conectar()
+                if conn and cursor:
+                    try:
+                        cursor.execute("SELECT contraseña FROM empleado WHERE idempleado = %s", (int(id_empleado),))
+                        resultado = cursor.fetchone()
+                        if resultado:
+                            self.mensaje("Contraseña", f"La contraseña del empleado '{id_empleado}' es:\n\n{resultado[0]}")
+                        else:
+                            self.mensaje("No encontrado", "Empleado no encontrado.")
+                    except Exception as e:
+                        self.mensaje("Error", f"Error al recuperar contraseña: {e}")
+                    finally:
+                        cursor.close()
+                        conn.close()
+                else:
+                    self.mensaje("Error", "No se pudo conectar a la base de datos.")
+        dlg.Destroy()
+        
     def actualizar_empleado(self, idempleado, nombre, apellidos, telefono, correo, contrasena):
         conn, cursor = conectar()
         if conn and cursor:
@@ -481,7 +602,7 @@ class EmpleadoCRUD(wx.Frame):
         conn, cursor = conectar()
         if conn and cursor:
             try:
-                cursor.execute("DELETE FROM empleado WHERE idempleado = %s", (idempleado,))
+                cursor.execute("DELETE FROM empleado WHERE idempleado = %s", (int(idempleado),))
                 conn.commit()
                 self.mensaje("Éxito", "Empleado eliminado correctamente.")
             except Exception as e:
