@@ -281,14 +281,16 @@ class EmpleadoCRUD(wx.Frame):
 
     def on_buscar(self, event):
         idempleado = self.txt_idempleado.GetValue().strip()
-        if not idempleado.isdigit():
-            self.mensaje("Advertencia", "Ingrese un ID válido.")
+        if not idempleado:
+            self.mensaje("Advertencia", "Ingrese un ID de empleado.")
             return
 
         conn, cursor = conectar()
         if conn and cursor:
             try:
-                cursor.execute("SELECT * FROM empleado WHERE idempleado = %s", (int(idempleado),))
+                cursor.execute("""
+                    SELECT * FROM empleado WHERE idempleado = %s
+                """, (int(idempleado),))
                 resultado = cursor.fetchone()
                 if resultado:
                     self.lista_resultados.DeleteAllItems()
@@ -298,15 +300,20 @@ class EmpleadoCRUD(wx.Frame):
                     self.lista_resultados.SetItem(idx, 3, str(resultado[3]) if resultado[3] else "")
                     self.lista_resultados.SetItem(idx, 4, str(resultado[4]) if resultado[4] else "")
 
+                    # Rellenar campos
                     self.txt_nombre.SetValue(resultado[1])
                     self.txt_apellidos.SetValue(resultado[2])
                     self.txt_telefono.SetValue(str(resultado[3]) if resultado[3] else "")
                     self.txt_correo.SetValue(str(resultado[4]) if resultado[4] else "")
+                    self.txt_contrasena.SetValue(resultado[5])
+                    self.txt_conf_contrasena.SetValue(resultado[5])
+                    if self.modo_registro:
+                        self.txt_conf_contrasena.SetValue(resultado[5])
                 else:
                     self.lista_resultados.DeleteAllItems()
                     self.mensaje("Información", "Empleado no encontrado.")
             except Exception as e:
-                self.mensaje("Error", f"Error al buscar empleado: {e}")
+                self.mensaje("Error", f"No se pudo buscar el empleado: {e}")
             finally:
                 cursor.close()
                 conn.close()
