@@ -100,9 +100,9 @@ CREATE TABLE IF NOT EXISTS detalles_compra (
 CREATE TABLE IF NOT EXISTS inventario (
   codigo_barras CHAR(13) NOT NULL,
   existencia_actual INT NOT NULL,
-  capacidad_maxima INT NOT NULL,
+  minimo_requerido INT NOT NULL,
   temporada VARCHAR(65) NOT NULL,
-  fecha_caducidad DATETIME,
+  ultimo_reabastecimiento DATETIME,
   PRIMARY KEY (codigo_barras),
   FOREIGN KEY (codigo_barras) REFERENCES articulo(codigo_barras)
 ) ENGINE = InnoDB;
@@ -140,28 +140,28 @@ INSERT INTO articulo (codigo_barras, nombre, descripcion, precio, unidad, descue
 ('7505000132154', 'Muñeca Clásica', 'Muñeca de vinil con vestido rosa', 120.00, 'pieza', 10.0, 0006),
 ('7505000132155', 'Lego Mini Set 50pcs', 'Juego de bloques armables', 99.00, 'caja', 0.0, 0006);
 
-INSERT INTO inventario (codigo_barras, existencia_actual, capacidad_maxima, temporada, fecha_caducidad) VALUES
-('7501000132153', 95, 200, 'Todo el año', '2025-12-31'),
-('7501020510148', 65, 150, 'Todo el año', '2025-11-10'),
-('7501035910012', 40, 100, 'Todo el año', '2027-03-15'),
-('7501058604521', 55, 100, 'Todo el año', '2026-05-01'),
-('7503012345678', 30, 80, 'Todo el año', '2025-06-05'),
-('7501000132160', 100, 200, 'Todo el año', '2025-12-30'),
-('7501020510149', 80, 150, 'Todo el año', '2025-10-15'),
-('7501035910013', 50, 120, 'Todo el año', '2026-01-20'),
-('7501058604522', 60, 100, 'Todo el año', '2026-07-10'),
-('7503012345679', 40, 90, 'Todo el año', '2025-05-12'),
-('7501000132177', 75, 150, 'Todo el año', '2025-11-25'),
-('7501020510150', 90, 200, 'Todo el año', '2025-12-05'),
-('7501035910014', 45, 110, 'Todo el año', '2026-02-28'),
-('7501058604523', 30, 80, 'Todo el año', '2026-06-15'),
-('7503012345680', 50, 100, 'Todo el año', '2025-07-20'),
-('7504000132150', 50, 150, 'Todo el año', '2025-07-10'),
-('7504000132151', 60, 700, 'Todo el año', '2025-07-12'),
-('7504000132152', 30, 100, 'Todo el año', '2025-07-09'),
-('7505000132153',  40, 140, 'Todo el año', '2026-02-18'),
-('7505000132154',  71, 210, 'Todo el año', '2026-02-28'),
-('7505000132155',  41, 170, 'Todo el año', '2026-02-08');
+INSERT INTO inventario (codigo_barras, existencia_actual,minimo_requerido, temporada, ultimo_reabastecimiento) VALUES
+('7501000132153', 95, 10, 'Todo el año', '2025-02-28'),
+('7501020510148', 65, 10, 'Todo el año', '2025-01-10'),
+('7501035910012', 40, 10, 'Todo el año', '2025-03-15'),
+('7501058604521', 55, 10, 'Todo el año', '2025-05-01'),
+('7503012345678', 30, 8, 'Todo el año', '2025-03-05'),
+('7501000132160', 100, 2, 'Todo el año', '2025-02-24'),
+('7501020510149', 80, 15, 'Todo el año', '2025-01-15'),
+('7501035910013', 50, 12, 'Todo el año', '2025-01-20'),
+('7501058604522', 60, 10, 'Todo el año', '2025-07-10'),
+('7503012345679', 40, 9, 'Todo el año', '2025-05-12'),
+('7501000132177', 75, 15, 'Todo el año', '2025-01-25'),
+('7501020510150', 90, 20, 'Todo el año', '2025-02-05'),
+('7501035910014', 45, 11, 'Todo el año', '2025-02-28'),
+('7501058604523', 30, 8, 'Todo el año', '2025-04-15'),
+('7503012345680', 50, 10, 'Todo el año', '2025-03-20'),
+('7504000132150', 50, 15, 'Todo el año', '2025-04-10'),
+('7504000132151', 60, 7, 'Todo el año', '2025-04-12'),
+('7504000132152', 30, 10, 'Todo el año', '2025-03-09'),
+('7505000132153',  40, 4, 'Todo el año', '2025-02-18'),
+('7505000132154',  71, 10, 'Todo el año', '2025-02-21'),
+('7505000132155',  41, 10, 'Todo el año', '2025-02-08');
 
 INSERT INTO cliente (telefono_cliente, nombre, apellido, correo_electronico) VALUES
 ('9615556232', 'Carolina', 'Ortega', 'caritoarqui@gmail.com'),
