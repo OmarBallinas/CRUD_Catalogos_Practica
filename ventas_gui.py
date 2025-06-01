@@ -1,7 +1,6 @@
 # ventas_gui.py
 import wx
 from conexion import conectar
-from ClienteDelSol import ClienteCRUD
 from ArticuloDelSol import ArticuloCRUD
 import os
 from reportlab.pdfgen import canvas
@@ -11,39 +10,17 @@ class VentaGUI(wx.Frame):
     def __init__(self, parent=None, idempleado=None, nombre_empleado=""):
         super().__init__(parent, title="Punto de Venta - Del Sol", size=(1200, 800))
         self.idempleado = idempleado
-        self.nombre_empleado = nombre_empleado
-        self.obtener_datos_empleado()
+        if not nombre_empleado and idempleado:
+            nombre_empleado = self.obtener_nombre_empleado(idempleado)
+        self.nombre_empleado = nombre_empleado  # Nombre del empleado que atiende
         self.cliente_seleccionado = None
         self.lista_carrito = []
         self.total_general = 0.0
         self.panel = wx.Panel(self)
-        self.SetBackgroundColour(wx.Colour(245, 247, 250))
-
-        # Obtenemos los datos del empleado desde la BD
-        self.nombre_empleado = ""
-        self.apellidos_empleado = ""
-        self.obtener_datos_empleado()
-
+        self.SetBackgroundColour(wx.Colour(245, 247, 250))  # Fondo claro igual a los demás
         self.crear_interfaz()
         self.Centre()
         self.Show()
-
-    def obtener_datos_empleado(self):
-        """Obtiene nombre y apellidos del empleado desde la BD"""
-        conn, cursor = conectar()
-        if conn and cursor:
-            try:
-                cursor.execute("SELECT nombre, apellidos FROM empleado WHERE idempleado = %s", (self.idempleado,))
-                resultado = cursor.fetchone()
-                if resultado:
-                    self.nombre_empleado = resultado[0]
-                    self.apellidos_empleado = resultado[1]
-                else:
-                    self.nombre_empleado = "Desconocido"
-                    self.apellidos_empleado = ""
-            finally:
-                cursor.close()
-                conn.close()
 
     def mensaje(self, titulo, mensaje):
         wx.MessageBox(mensaje, titulo, wx.OK | wx.ICON_INFORMATION)
@@ -58,12 +35,10 @@ class VentaGUI(wx.Frame):
         lbl_titulo.SetForegroundColour(wx.Colour(44, 62, 80))  # Azul oscuro
         sizer_principal.Add(lbl_titulo, 0, wx.ALIGN_CENTER | wx.ALL, 20)
 
-        # Datos del empleado
+        # Datos del empleado (a la izquierda)
         datos_empleado_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.lbl_datos_empleado = wx.StaticText(
-            self.panel,
-            label=f"Atendido por: {self.nombre_empleado} {self.apellidos_empleado}"
-        )
+        self.lbl_datos_empleado = wx.StaticText(self.panel,
+                                               label=f"Atendido por: {self.nombre_empleado}")
         font_datos = wx.Font(14, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         self.lbl_datos_empleado.SetFont(font_datos)
         self.lbl_datos_empleado.SetForegroundColour(wx.Colour(44, 62, 80))
@@ -74,8 +49,12 @@ class VentaGUI(wx.Frame):
         nav_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_regresar = wx.Button(self.panel, label="Regresar al Menú", size=(150, 40))
         btn_cancelar = wx.Button(self.panel, label="Cancelar Venta", size=(150, 40))
+        btn_regresar.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
+        btn_cancelar.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
+
         btn_regresar.Bind(wx.EVT_BUTTON, self.on_regresar)
         btn_cancelar.Bind(wx.EVT_BUTTON, self.on_cancelar_venta)
+
         nav_sizer.Add(btn_regresar, 0, wx.ALL, 5)
         nav_sizer.Add(btn_cancelar, 0, wx.ALL, 5)
         sizer_principal.Add(nav_sizer, 0, wx.ALIGN_RIGHT | wx.RIGHT | wx.TOP, 10)
@@ -86,7 +65,7 @@ class VentaGUI(wx.Frame):
         sizer_cliente = wx.StaticBoxSizer(box_cliente, wx.HORIZONTAL)
         grid_cliente = wx.FlexGridSizer(rows=1, cols=3, vgap=5, hgap=10)
 
-        self.txt_telefono = wx.TextCtrl(self.panel, style=wx.TE_PROCESS_ENTER)
+        self.txt_telefono = wx.TextCtrl(self.panel, style=wx.TE_PROCESS_ENTER, size=(-1, 25))
         self.txt_telefono.Bind(wx.EVT_TEXT, self.buscar_cliente_auto)
         self.txt_telefono.Bind(wx.EVT_TEXT_ENTER, self.buscar_cliente_auto)
 
@@ -100,7 +79,7 @@ class VentaGUI(wx.Frame):
         btn_agregar_cliente.SetBackgroundColour(wx.Colour(46, 204, 113))
         btn_agregar_cliente.SetForegroundColour(wx.WHITE)
         btn_agregar_cliente.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
-        btn_agregar_cliente.Bind(wx.EVT_BUTTON, self.abrir_cliente_crud)
+        btn_agregar_cliente.Bind(wx.EVT_BUTTON, self.abrir_cliente_crud_reducido)
 
         self.lista_clientes = wx.ListCtrl(self.panel, style=wx.LC_REPORT | wx.BORDER_SUNKEN, size=(-1, 100))
         self.lista_clientes.InsertColumn(0, "Teléfono", width=150)
@@ -121,7 +100,7 @@ class VentaGUI(wx.Frame):
         box_articulo.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
         sizer_articulo = wx.StaticBoxSizer(box_articulo, wx.HORIZONTAL)
 
-        self.txt_codigo = wx.TextCtrl(self.panel, style=wx.TE_PROCESS_ENTER)
+        self.txt_codigo = wx.TextCtrl(self.panel, style=wx.TE_PROCESS_ENTER, size=(-1, 25))
         self.txt_codigo.Bind(wx.EVT_TEXT_ENTER, self.buscar_articulo)
         self.txt_codigo.Bind(wx.EVT_TEXT, self.busqueda_rapida_articulos)
 
@@ -155,14 +134,12 @@ class VentaGUI(wx.Frame):
         # Tablas diferenciadas
         tabla_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        # Artículos Disponibles
         box_disponibles = wx.StaticBox(self.panel, label="Artículos Disponibles")
         box_disponibles.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
         sizer_disponibles = wx.StaticBoxSizer(box_disponibles, wx.VERTICAL)
         sizer_disponibles.Add(self.lista_articulos, 1, wx.EXPAND | wx.ALL, 5)
         tabla_sizer.Add(sizer_disponibles, 1, wx.EXPAND | wx.ALL, 5)
 
-        # Carrito Actual
         box_carrito = wx.StaticBox(self.panel, label="Carrito Actual")
         box_carrito.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
         sizer_carrito = wx.StaticBoxSizer(box_carrito, wx.VERTICAL)
@@ -208,7 +185,8 @@ class VentaGUI(wx.Frame):
         conn, cursor = conectar()
         if conn and cursor:
             try:
-                cursor.execute("SELECT * FROM cliente WHERE telefono_cliente LIKE %s LIMIT 5", (f"{telefono}%",))
+                cursor.execute("SELECT * FROM cliente WHERE telefono_cliente LIKE %s LIMIT 5",
+                               (f"{telefono}%",))
                 resultados = cursor.fetchall()
                 self.lista_clientes.DeleteAllItems()
                 for row in resultados:
@@ -234,8 +212,90 @@ class VentaGUI(wx.Frame):
                 cursor.close()
                 conn.close()
 
-    def abrir_cliente_crud(self, event):
-        ClienteCRUD(parent=self)
+    def abrir_cliente_crud_reducido(self, event):
+        dialogo = wx.Dialog(self, title="Nuevo Cliente", size=(500, 300))
+        panel = wx.Panel(dialogo)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Campos
+        wx.StaticText(panel, label="Teléfono:")
+        self.txt_tel = wx.TextCtrl(panel)
+        wx.StaticText(panel, label="Nombre:")
+        self.txt_nombre = wx.TextCtrl(panel)
+        wx.StaticText(panel, label="Apellido:")
+        self.txt_apellido = wx.TextCtrl(panel)
+        wx.StaticText(panel, label="Correo electrónico:")
+        self.txt_correo = wx.TextCtrl(panel)
+
+        for label in panel.GetChildren():
+            if isinstance(label, wx.StaticText):
+                label.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
+
+        sizer.Add(wx.StaticText(panel, label="Teléfono:"), 0, wx.ALL, 5)
+        sizer.Add(self.txt_tel, 0, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(wx.StaticText(panel, label="Nombre:"), 0, wx.ALL, 5)
+        sizer.Add(self.txt_nombre, 0, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(wx.StaticText(panel, label="Apellido:"), 0, wx.ALL, 5)
+        sizer.Add(self.txt_apellido, 0, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(wx.StaticText(panel, label="Correo electrónico:"), 0, wx.ALL, 5)
+        sizer.Add(self.txt_correo, 0, wx.EXPAND | wx.ALL, 5)
+
+        # Botones
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_crear = wx.Button(panel, label="Crear", size=(120, 30))
+        btn_limpiar = wx.Button(panel, label="Limpiar", size=(120, 30))
+        btn_regresar = wx.Button(panel, label="Regresar", size=(120, 30))
+        btn_crear.SetBackgroundColour(wx.Colour(46, 204, 113))
+        btn_limpiar.SetBackgroundColour(wx.Colour(52, 152, 219))
+        btn_regresar.SetBackgroundColour(wx.Colour(149, 165, 166))
+
+        btn_crear.Bind(wx.EVT_BUTTON, lambda e: self.guardar_cliente_desde_venta(dialogo))
+        btn_limpiar.Bind(wx.EVT_BUTTON, lambda e: self.limpiar_campos_cliente_temp(dialogo))
+        btn_regresar.Bind(wx.EVT_BUTTON, lambda e: dialogo.EndModal(wx.ID_CANCEL))
+
+        btn_sizer.Add(btn_crear, 0, wx.ALL, 5)
+        btn_sizer.Add(btn_limpiar, 0, wx.ALL, 5)
+        btn_sizer.Add(btn_regresar, 0, wx.ALL, 5)
+        sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+
+        panel.SetSizer(sizer)
+        dialogo.ShowModal()
+
+    def limpiar_campos_cliente_temp(self, dialogo):
+        self.txt_tel.Clear()
+        self.txt_nombre.Clear()
+        self.txt_apellido.Clear()
+        self.txt_correo.Clear()
+
+    def guardar_cliente_desde_venta(self, dialogo):
+        tel = self.txt_tel.GetValue().strip()
+        nombre = self.txt_nombre.GetValue().strip()
+        apellido = self.txt_apellido.GetValue().strip()
+        correo = self.txt_correo.GetValue().strip()
+
+        if not tel.isdigit() or len(tel) != 10:
+            self.mensaje("Advertencia", "Teléfono debe tener 10 dígitos.")
+            return
+        if not nombre or not apellido:
+            self.mensaje("Advertencia", "Nombre y Apellido son obligatorios.")
+            return
+
+        conn, cursor = conectar()
+        if conn and cursor:
+            try:
+                cursor.execute("INSERT INTO cliente (telefono_cliente, nombre, apellido, correo_electronico) VALUES (%s, %s, %s, %s)",
+                               (tel, nombre, apellido, correo or ""))
+                conn.commit()
+                self.cliente_seleccionado = (tel, nombre, apellido, correo)
+                self.txt_telefono.SetValue(tel)
+                self.mensaje("Éxito", "Cliente creado exitosamente.")
+                dialogo.EndModal(wx.ID_OK)
+            except Exception as e:
+                conn.rollback()
+                self.mensaje("Error", f"No se pudo crear cliente: {e}")
+            finally:
+                cursor.close()
+                conn.close()
 
     # --- ARTÍCULOS ---
     def buscar_articulo(self, event):
@@ -297,10 +357,12 @@ class VentaGUI(wx.Frame):
         if not hasattr(self, 'codigo_seleccionado') or not self.codigo_seleccionado:
             self.mensaje("Advertencia", "Primero busque un artículo válido.")
             return
-
-        cantidad = self.spin_cantidad.GetValue()
-        if cantidad <= 0:
-            self.mensaje("Error", "La cantidad debe ser mayor a 0.")
+        try:
+            cantidad = int(self.spin_cantidad.GetValue())
+            if cantidad <= 0:
+                raise ValueError
+        except ValueError:
+            self.mensaje("Error", "La cantidad debe ser un número positivo.")
             return
 
         if cantidad > self.stock_articulo:
@@ -400,7 +462,7 @@ class VentaGUI(wx.Frame):
                     """, (item["cantidad"], item["codigo"]))
 
                 conn.commit()
-                self.generar_ticket(folio_venta)
+                self.generar_ticket(folio_venta, self.nombre_empleado)
                 self.limpiar_venta()
             except Exception as e:
                 conn.rollback()
@@ -409,7 +471,7 @@ class VentaGUI(wx.Frame):
                 cursor.close()
                 conn.close()
 
-    def generar_ticket(self, folio):
+    def generar_ticket(self, folio, nombre_empleado):
         fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ticket_texto = f"""
         {'-'*40}
@@ -425,7 +487,7 @@ class VentaGUI(wx.Frame):
         else:
             ticket_texto += "General\n\n"
 
-        ticket_texto += f"Atendido por:\n{self.nombre_empleado} {self.apellidos_empleado}\n\n"
+        ticket_texto += f"Atendido por:\n{nombre_empleado}\n\n"
         ticket_texto += "ARTÍCULOS:\n"
         for item in self.lista_carrito:
             ticket_texto += f"{item['nombre']} x{item['cantidad']} @ ${item['precio']:.2f} = ${item['subtotal']:.2f}\n"
@@ -471,9 +533,27 @@ class VentaGUI(wx.Frame):
     def on_regresar(self, event):
         self.Close()
         from MenuPrincipal import MenuPrincipal
-        MenuPrincipal(idempleado=self.idempleado)
+        MenuPrincipal(idempleado=self.idempleado, nombre_empleado=self.nombre_empleado)
 
     def on_cancelar_venta(self, event):
         confirmacion = wx.MessageBox("¿Está seguro de cancelar esta venta?", "Cancelar Venta", wx.YES_NO | wx.ICON_QUESTION)
         if confirmacion == wx.YES:
             self.limpiar_venta()
+        
+    def obtener_nombre_empleado(self, idempleado):
+        """Obtiene el nombre del empleado desde la base de datos"""
+        conn, cursor = conectar()
+        if conn and cursor:
+            try:
+                cursor.execute("SELECT nombre FROM empleado WHERE idempleado = %s", (idempleado,))
+                resultado = cursor.fetchone()
+                return resultado[0] if resultado else "Empleado Desconocido"
+            except Exception as e:
+                print(f"Error al obtener nombre del empleado: {e}")
+                return "Empleado Desconocido"
+            finally:
+                cursor.close()
+                conn.close()
+        return "Empleado Desconocido"
+    
+    
