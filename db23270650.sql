@@ -176,8 +176,8 @@ INSERT INTO cliente (telefono_cliente, nombre, apellido, correo_electronico) VAL
 ('9615556999', 'Laura', 'Hernández', 'laura.hernandez@outlook.com'),
 ('9615512333', 'Alan', 'Ichin', 'alansillo.ichin@gmail.com'),
 ('9617622667', 'Verónica', 'Sánchez', 'veronica.sanchez@hotmail.com'),
-('9619877112', 'Arnol', 'Torres', 'eduardo.torres@gmail.com');
-
+('9619877112', 'Arnol', 'Torres', 'eduardo.torres@gmail.com'),
+('9999999999', 'CLIENTE', 'GENERAL', 'cliente.general@gmail.com');
 
 INSERT INTO empleado (idempleado, nombre, apellidos, telefono, correo_electronico, contraseña) VALUES
 (1, 'Jorge', 'Hernández Díaz', '9615423111', 'jorge.hdz@tienda.mx', 'jorgehernandez'),

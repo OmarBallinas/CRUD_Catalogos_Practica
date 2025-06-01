@@ -122,7 +122,8 @@ class MenuPrincipal(wx.Frame):
         ProveedorCRUD()
 
     def abrir_ventas(self, event):
-        VentaGUI(idempleado=self.idempleado)
+        from ventas_gui import VentaGUI
+        VentaGUI(parent=self, idempleado=self.idempleado, nombre_empleado=self.nombre_empleado)
 
     def abrir_compras(self, event):
         CompraGUI(idempleado=self.idempleado)
