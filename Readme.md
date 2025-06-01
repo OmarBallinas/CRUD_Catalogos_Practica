@@ -1,4 +1,4 @@
-Paso 1. Crear la base de datos mysql con el script .sql incluido, la version usada para esta practica fue la 8.0 
+Paso 1. Crear la base de datos mysql, BORRARLA SI YA EXISTE PORQUE SE REALIZARON CAMBIOS; crearla con el script .sql incluido, la version usada para esta practica fue la 8.0 
 
 Paso 2 Abrir el proyecto en el editor Visual Studio Code 
 
