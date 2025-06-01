@@ -369,6 +369,46 @@ class VentaGUI(wx.Frame):
             self.mensaje("Advertencia", "El carrito está vacío.")
             return
 
+        # Diálogo para seleccionar el método de pago
+        dlg = wx.SingleChoiceDialog(
+            self,
+            "Seleccione el método de pago:",
+            "Método de Pago",
+            ['Efectivo', 'Tarjeta', 'Transferencia']
+        )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            tipo_pago = dlg.GetStringSelection()
+        else:
+            dlg.Destroy()
+            return
+        dlg.Destroy()
+
+        monto_recibido = None
+        cambio = 0.0
+
+        if tipo_pago == "Efectivo":
+            # Pedir el monto recibido si es efectivo
+            dlg_monto = wx.TextEntryDialog(
+                self,
+                f"Monto total: ${self.total_general:.2f}\nIngrese el monto recibido:",
+                "Pago en Efectivo"
+            )
+            if dlg_monto.ShowModal() == wx.ID_OK:
+                try:
+                    monto_recibido = float(dlg_monto.GetValue())
+                    if monto_recibido < self.total_general:
+                        self.mensaje("Error", "El monto recibido es menor al total.")
+                        return
+                    cambio = monto_recibido - self.total_general
+                except ValueError:
+                    self.mensaje("Error", "Monto inválido.")
+                    return
+            else:
+                return
+            dlg_monto.Destroy()
+            
+        # Guardar venta en la base de datos
         conn, cursor = conectar()
         if conn and cursor:
             try:
@@ -377,15 +417,17 @@ class VentaGUI(wx.Frame):
                     VALUES (NOW(), %s, %s, %s, %s, 0.0)
                 """, (
                     self.total_general,
-                    "Efectivo",
+                    tipo_pago,
                     self.idempleado,
                     self.cliente_seleccionado[0] if self.cliente_seleccionado else "9999999999"
                 ))
-                folio_venta = cursor.lastrowid
+                folio_venta = cursor.lastrowid  # Obtenemos el ID de la venta recién creada
 
+                # Guardar cada artículo del carrito en detalles_venta
                 for item in self.lista_carrito:
                     cursor.execute("""
-                        INSERT INTO detalles_venta (folio_de_ticket, codigo_barras, cantidad_articulo, precio_unitario_venta, subtotal_venta, impuesto_unitario)
+                        INSERT INTO detalles_venta 
+                        (folio_de_ticket, codigo_barras, cantidad_articulo, precio_unitario_venta, subtotal_venta, impuesto_unitario)
                         VALUES (%s, %s, %s, %s, %s, 0.0)
                     """, (
                         folio_venta,
@@ -394,39 +436,54 @@ class VentaGUI(wx.Frame):
                         item["precio"],
                         item["subtotal"]
                     ))
+
+                    # Actualizar el inventario
                     cursor.execute("""
                         UPDATE inventario SET existencia_actual = existencia_actual - %s
                         WHERE codigo_barras = %s
                     """, (item["cantidad"], item["codigo"]))
 
                 conn.commit()
-                self.generar_ticket(folio_venta)
+                
+                # Llamar a generar_ticket con todos los datos
+                self.generar_ticket(folio_venta, tipo_pago, monto_recibido if tipo_pago == "Efectivo" else None, cambio)
+
                 self.limpiar_venta()
+
             except Exception as e:
                 conn.rollback()
                 self.mensaje("Error", f"No se pudo completar la venta: {e}")
             finally:
                 cursor.close()
                 conn.close()
+        else:
+            self.mensaje("Error", "No se pudo conectar a la base de datos.")
 
-    def generar_ticket(self, folio):
+    def generar_ticket(self, folio, tipo_pago, monto_recibido=None, cambio=None):
         fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ticket_texto = f"""
-        {'-'*40}
-        TIENDA DEL SOL
-        Folio: {folio}
-        Fecha: {fecha}
+    {'-'*40}
+    TIENDA DEL SOL
+    Folio: {folio}
+    Fecha: {fecha}
+    CLIENTE:
+    """
 
-        CLIENTE:
-        """
         if self.cliente_seleccionado:
             ticket_texto += f"{self.cliente_seleccionado[1]} {self.cliente_seleccionado[2]}\n"
-            ticket_texto += f"{self.cliente_seleccionado[0]}\n\n"
+            ticket_texto += f"{self.cliente_seleccionado[0]}\n"
         else:
-            ticket_texto += "General\n\n"
+            ticket_texto += "General\n"
 
-        ticket_texto += f"Atendido por:\n{self.nombre_empleado} {self.apellidos_empleado}\n\n"
+        ticket_texto += f"Atendido por:\n{self.nombre_empleado} {self.apellidos_empleado}\n"
+        ticket_texto += f"Método de pago: {tipo_pago}\n"
+
+        if tipo_pago == "Efectivo" and monto_recibido is not None:
+            ticket_texto += f"Monto recibido: ${monto_recibido:.2f}\n"
+            ticket_texto += f"Cambio:         ${cambio:.2f}\n"
+
         ticket_texto += "ARTÍCULOS:\n"
+
         for item in self.lista_carrito:
             ticket_texto += f"{item['nombre']} x{item['cantidad']} @ ${item['precio']:.2f} = ${item['subtotal']:.2f}\n"
 
