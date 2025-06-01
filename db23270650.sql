@@ -184,7 +184,8 @@ INSERT INTO empleado (idempleado, nombre, apellidos, telefono, correo_electronic
 (2, 'Gustavo', 'Zenteno Mendoza', '9617754232', 'gust.zent@tienda.mx', 'gustavozenteno'),
 (3, 'Pedro', 'García León', '9678896542', 'pedro.gl@tienda.mx', 'pedrogarcia'),
 (4, 'Valeria', 'Martinez Diaz', '9615425322', 'valeria.martin@tienda.mx', 'valeriamartinez'),
-(5, 'Andrés', 'Zapata Cruz', '9613345334', 'andres.zc@tienda.mx', 'andreszapata');
+(5, 'Andrés', 'Zapata Cruz', '9613345334', 'andres.zc@tienda.mx', 'andreszapata'),
+(999, 'Empleado', 'de prueba', '9991122345', 'empleadoprueba@tienda.mx', '123456');
 
 INSERT INTO proveedor (idproveedor, nombre, contacto, telefono, correo_electronico, direccion) VALUES
 (1, 'Coca-Cola FEMSA', 'Marisa Rios', '9615426354', 'ventas@coca-cola.com', 'Col. Vida Mejor, TGZ'),

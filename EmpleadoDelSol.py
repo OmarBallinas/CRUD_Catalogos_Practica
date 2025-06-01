@@ -2,8 +2,9 @@ import wx
 from conexion import conectar
 
 class EmpleadoCRUD(wx.Frame):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None,es_gerente=False):
         super().__init__(parent, title='Catálogo de Empleados', size=(1200, 800))
+        self.es_gerente = es_gerente
         self.panel = wx.Panel(self)
         self.lista_resultados = None
         self.txt_idempleado = None

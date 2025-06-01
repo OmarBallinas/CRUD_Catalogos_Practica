@@ -96,7 +96,7 @@ class VentaGUI(wx.Frame):
         btn_cliente_general.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
         btn_cliente_general.Bind(wx.EVT_BUTTON, self.seleccionar_cliente_general)
 
-        btn_agregar_cliente = wx.Button(self.panel, label="Agregar Cliente", size=(150, 40))
+        btn_agregar_cliente = wx.Button(self.panel, label="Gestor Cliente", size=(150, 40))
         btn_agregar_cliente.SetBackgroundColour(wx.Colour(46, 204, 113))
         btn_agregar_cliente.SetForegroundColour(wx.WHITE)
         btn_agregar_cliente.SetFont(wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))

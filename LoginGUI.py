@@ -89,13 +89,13 @@ class LoginGUI(wx.Frame):
             wx.MessageBox("No se pudo conectar a la base de datos.", "Error", wx.OK | wx.ICON_ERROR)
 
     def registrar_nuevo_empleado(self, event):
-    # Pedimos la clave del gerente
+        # Pedimos la clave del gerente
         dlg = wx.TextEntryDialog(
-        self, 
-        "Ingrese la clave del gerente:",  # mensaje
-        "Autenticación Requerida",        # título
-        "",                               # valor por defecto
-        style=wx.TE_PASSWORD | wx.OK | wx.CANCEL
+            self, 
+            "Ingrese la clave del gerente:",  # mensaje
+            "Autenticación Requerida",        # título
+            "",                               # valor por defecto
+            style=wx.TE_PASSWORD | wx.OK | wx.CANCEL
         )
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -105,8 +105,8 @@ class LoginGUI(wx.Frame):
             if clave != "1234":
                 wx.MessageBox("Clave incorrecta. Acceso denegado.", "Error", wx.OK | wx.ICON_ERROR)
             else:
-                self.Close()
-                # Abrimos el CRUD de empleados SOLO con el botón Crear
-                EmpleadoCRUD(es_gerente=True, modo_registro=True)  # Nuevo parámetro
+                self.Close()  # Cierra la ventana de Login
+                from EmpleadoDelSol import EmpleadoCRUD
+                EmpleadoCRUD(es_gerente=True)  # Abre el CRUD completo de empleados
         else:
             dlg.Destroy()
